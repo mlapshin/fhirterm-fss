@@ -1,5 +1,6 @@
 DATA_URLS = {
-  valuesets: "http://www.hl7.org/implement/standards/FHIR-Develop/valuesets.json"
+  valuesets: "http://www.hl7.org/implement/standards/FHIR-Develop/valuesets.json",
+  v2tables: "http://www.hl7.org/implement/standards/FHIR-Develop/v2-tables.json"
 }
 
 namespace :data do
@@ -7,13 +8,20 @@ namespace :data do
     require 'rest_client'
     require 'json'
 
-    response = RestClient.get DATA_URLS[:valuesets]
-    JSON.parse(response.to_str)["entry"].each do |r|
-      vs = r["resource"]
-      fn = "data/ValueSet/#{vs['id']}"
-      puts "Writing file #{fn}"
+    bundle_to_file(DATA_URLS[:valuesets],
+                   "data/value_sets/standard.json")
 
-      File.open(fn, 'w') { |f| f.write JSON.generate(vs) }
+    bundle_to_file(DATA_URLS[:v2tables],
+                   "data/value_sets/v2tables.json")
+  end
+
+  def bundle_to_file(url, file)
+    puts "GET #{url} => #{file}"
+    response = RestClient.get url
+
+    resources = JSON.parse(response.to_str)["entry"].map { |r| r["resource"] }
+    File.open(file, 'w') do |f|
+      f.write JSON.pretty_generate(resources)
     end
 
   end
