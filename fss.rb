@@ -20,6 +20,10 @@ class FhirServerStub < Sinatra::Base
     content_type :json
   end
 
+  get '/' do
+    {}.to_json
+  end
+
   get '/ValueSet/:id' do
     respond_with_json_or_not_found @value_sets[params[:id]]
   end
