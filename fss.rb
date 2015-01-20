@@ -2,6 +2,7 @@
 require "sinatra/base"
 require "sinatra/reloader"
 require 'json'
+require 'uuid'
 
 class FhirServerStub < Sinatra::Base
   configure :development do
@@ -22,6 +23,18 @@ class FhirServerStub < Sinatra::Base
 
   get '/' do
     {}.to_json
+  end
+
+  get '/ValueSet' do
+    if params[:identifier]
+      result = @value_sets.values.select do |vs|
+        vs["identifier"] == params[:identifier]
+      end
+    else
+      result = @value_sets.values
+    end
+
+    bundle result
   end
 
   get '/ValueSet/:id' do
@@ -66,5 +79,16 @@ class FhirServerStub < Sinatra::Base
          "text" => "No data found"
        }.to_json]
     end
+  end
+
+  def bundle(content)
+    b = {
+      "resourceType" => "Bundle",
+      "id" => UUID.generate,
+      "total" => content.size,
+      "entry" => content.map { |c| {"resource" => c} }
+    }
+
+    respond_with_json_or_not_found b
   end
 end
