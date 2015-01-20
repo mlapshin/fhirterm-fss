@@ -28,7 +28,11 @@ class FhirServerStub < Sinatra::Base
   get '/ValueSet' do
     if params[:identifier]
       result = @value_sets.values.select do |vs|
-        vs["identifier"] == params[:identifier]
+        vs["identifier"].downcase == params[:identifier].downcase
+      end
+    elsif params[:system]
+      result = @value_sets.values.select do |vs|
+        vs["define"] && vs["define"]["system"].downcase == params[:system].downcase
       end
     else
       result = @value_sets.values
